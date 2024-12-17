@@ -1,4 +1,4 @@
-(setq debug-on-error t)
+;;(setq debug-on-error f)
 (setq inhibit-startup-messages t)
 
 ;; Modes
@@ -8,21 +8,6 @@
 (set-fringe-mode 10)
 (menu-bar-mode -1)
 (pixel-scroll-precision-mode 1)
-
-;;keyboard
-(setq mac-command-modifier 'control)
-
-;; Env vars'
-(setenv "gios" "/ssh:vagrant@gios-vagrant:~/s")
-(setenv "init.el" "~/.emacs.d/init.el")
-
-;; Custom Keybindings
-(global-set-key (kbd "C-x k") 'kill-this-buffer)
-(global-set-key (kbd "C-x C-f") 'counsel-find-file)
-(global-set-key (kbd "C-;") 'avy-goto-char-timer)
-(global-set-key (kbd "M-g f") 'avy-goto-line)
-(global-set-key (kbd "M-x") 'counsel-M-x)
-(global-set-key (kbd "C-x C-B") 'list-buffers)
 
 ;; ALL PACKAGE STUFF
 (require 'package)
@@ -52,63 +37,13 @@
 (setq compilation-ask-about-save nil)
 (setq dired-dwim-target t)
 
-(use-package exec-path-from-shell
-  :ensure t)
-
-(exec-path-from-shell-initialize)
-;; load evil
-(use-package evil
-  :ensure t
-  :init
-  (setq evil-want-integration t) ;; This is optional since it's already set to t by default.
-  (setq evil-want-keybinding nil)
-  :config
-  (evil-mode 1))
-
-(use-package evil-collection
-  :after evil
-  :ensure t
-  :config
-  (evil-collection-init))
-
-(use-package evil-commentary
-  :after evil
-  :ensure t)
-
-(use-package evil-leader
-  :ensure
-  :after evil
-  :config
-  (global-evil-leader-mode 1)
-  (setq evil-leader/leader "<SPC>")
-      (evil-leader/set-key
-        "e" 'find-file)
-      (evil-leader/set-key
-        "a" 'async-shell-command)
-      (evil-leader/set-key
-        "s" 'shell-command)
-      (evil-leader/set-key
-        "d" 'dired)
-      (evil-leader/set-key
-        "b" 'list-buffers)
-      ; Apparently this needs to go after (global-evil-leader-mode)
-      ; https://emacs.stackexchange.com/questions/30332/evil-leader-stops-working-when-i-eval-buffer
-      (evil-mode t))
-
-(add-hook 'evil-insert-state-exit-hook
-          (lambda ()
-            (call-interactively #'save-buffer)))
-  
-(use-package vterm
-  :ensure t)
-
 (use-package consult
   :ensure t
   :bind (
-	 ("C-c M-x" . consult-mode-command)
-	 ("C-c h" . consult-history)
-	 ("C-s" . consult-line)
-	 ("M-s r" . consult-ripgrep))
+ ("C-c M-x" . consult-mode-command)
+ ("C-c h" . consult-history)
+ ("C-s" . consult-line)
+ ("M-s r" . consult-ripgrep))
   :hook (completion-list-mode . consult-preview-at-point-mode)
   :init
   (setq register-preview-delay 0.5
@@ -128,7 +63,7 @@
   :custom
   (completion-styles '(orderless basic))
   (completion-category-overrides '((file (styles basic partial-completion)))))
- 
+
 (use-package vertico
   :ensure t
   :init
@@ -147,72 +82,126 @@
   ;; Must be in the :init section of use-package such that the mode gets
   ;; Enabled right away. Note that this forces loading the package.
   (marginalia-mode))
-
-(use-package all-the-icons
-  :if (display-graphic-p))
-
-(use-package dired-subtree
-        :ensure t
-        :bind (:map dired-mode-map
-                    ("i" . dired-subtree-insert)
-                    (";" . dired-subtree-remove)
-                    ("<tab>" . dired-subtree-toggle)
-                    ("<C-tab>" . dired-subtree-cycle)))
-
-(defun xah-dired-mode-setup ()
-  "to be run as hook for `dired-mode'."
-  (dired-hide-details-mode 1))
-
-(add-hook 'dired-mode-hook 'xah-dired-mode-setup)
-
-(require 'dired )
-
-(define-key dired-mode-map (kbd "RET") 'dired-find-alternate-file) ; was dired-advertised-find-file
-
-(define-key dired-mode-map (kbd "^") (lambda () (interactive) (find-alternate-file "..")))  ; was dired-up-directory
-
-(use-package pyvenv
-  :config
-  (pyvenv-mode 1))
-
 (put 'dired-find-alternate-file 'disabled nil)
 
-(use-package org-journal
-  :ensure t)
-(require 'org-journal) 
+(use-package god-mode
+  :ensure t
+  :init
+  (god-mode))
 
-;; custom funcs
-(defun window-split-toggle ()
-  "Toggle between horizontal and vertical split with two windows."
-  (interactive)
-  (if (> (length (window-list)) 2)
-      (error "Can't toggle with more than 2 windows!")
-    (let ((func (if (window-full-height-p)
-                    #'split-window-vertically
-                  #'split-window-horizontally)))
-      (delete-other-windows)
-      (funcall func)
-      (save-selected-window
-        (other-window 1)
-        (switch-to-buffer (other-buffer))))))
+(global-set-key (kbd "<CapsLock>") #'god-local-mode)
+
+
+;;(use-package meow
+;;  :ensure t
+;;  :config
+;;  ;; Enable meow-mode globally
+;;  (meow-global-mode 1)
+;;  
+;;  ;; Define your custom keybindings and settings here
+;;
+;;(defun meow-setup ()
+;;  (setq meow-cheatsheet-layout meow-cheatsheet-layout-qwerty)
+;;  (meow-motion-overwrite-define-key
+;;   '("j" . meow-next)
+;;   '("k" . meow-prev)
+;;   '("<escape>" . ignore))
+;;  (meow-leader-define-key
+;;   ;; SPC j/k will run the original command in MOTION state.
+;;   '("j" . "H-j")
+;;   '("k" . "H-k")
+;;   ;; Use SPC (0-9) for digit arguments.
+;;   '("1" . meow-digit-argument)
+;;   '("2" . meow-digit-argument)
+;;   '("3" . meow-digit-argument)
+;;   '("4" . meow-digit-argument)
+;;   '("5" . meow-digit-argument)
+;;   '("6" . meow-digit-argument)
+;;   '("7" . meow-digit-argument)
+;;   '("8" . meow-digit-argument)
+;;   '("9" . meow-digit-argument)
+;;   '("0" . meow-digit-argument)
+;;   '("/" . meow-keypad-describe-key)
+;;   '("?" . meow-cheatsheet))
+;;  (meow-normal-define-key
+;;   '("0" . meow-expand-0)
+;;   '("9" . meow-expand-9)
+;;   '("8" . meow-expand-8)
+;;   '("7" . meow-expand-7)
+;;   '("6" . meow-expand-6)
+;;   '("5" . meow-expand-5)
+;;   '("4" . meow-expand-4)
+;;   '("3" . meow-expand-3)
+;;   '("2" . meow-expand-2)
+;;   '("1" . meow-expand-1)
+;;   '("-" . negative-argument)
+;;   '(";" . meow-reverse)
+;;   '("," . meow-inner-of-thing)
+;;   '("." . meow-bounds-of-thing)
+;;   '("[" . meow-beginning-of-thing)
+;;   '("]" . meow-end-of-thing)
+;;   '("a" . meow-append)
+;;   '("A" . meow-open-below)
+;;   '("b" . meow-back-word)
+;;   '("B" . meow-back-symbol)
+;;   '("c" . meow-change)
+;;   '("d" . meow-delete)
+;;   '("D" . meow-backward-delete)
+;;   '("e" . meow-next-word)
+;;   '("E" . meow-next-symbol)
+;;   '("f" . meow-find)
+;;   '("g" . meow-cancel-selection)
+;;   '("G" . meow-grab)
+;;   '("h" . meow-left)
+;;   '("H" . meow-left-expand)
+;;   '("i" . meow-insert)
+;;   '("I" . meow-open-above)
+;;   '("j" . meow-next)
+;;   '("J" . meow-next-expand)
+;;   '("k" . meow-prev)
+;;   '("K" . meow-prev-expand)
+;;   '("l" . meow-right)
+;;   '("L" . meow-right-expand)
+;;   '("m" . meow-join)
+;;   '("n" . meow-search)
+;;   '("o" . meow-block)
+;;   '("O" . meow-to-block)
+;;   '("p" . meow-yank)
+;;   '("q" . meow-quit)
+;;   '("Q" . meow-goto-line)
+;;   '("r" . meow-replace)
+;;   '("R" . meow-swap-grab)
+;;   '("s" . meow-kill)
+;;   '("t" . meow-till)
+;;   '("u" . meow-undo)
+;;   '("U" . meow-undo-in-selection)
+;;   '("v" . meow-visit)
+;;   '("w" . meow-mark-word)
+;;   '("W" . meow-mark-symbol)
+;;   '("x" . meow-line)
+;;   '("X" . meow-goto-line)
+;;   '("y" . meow-save)
+;;   '("Y" . meow-sync-grab)
+;;   '("z" . meow-pop-selection)
+;;   '("'" . repeat)
+;;   '("<escape>" . ignore)))
+;;  
+;;  (meow-setup))
+
 (custom-set-variables
  ;; custom-set-variables was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
  '(connection-local-criteria-alist
-   '(((:application eshell)
-      eshell-connection-default-profile)
-     ((:application tramp :machine "localhost")
+   '(((:application tramp :machine "localhost")
       tramp-connection-local-darwin-ps-profile)
      ((:application tramp :machine "Alexs-MacBook-Pro.local")
       tramp-connection-local-darwin-ps-profile)
      ((:application tramp)
       tramp-connection-local-default-system-profile tramp-connection-local-default-shell-profile)))
  '(connection-local-profile-alist
-   '((eshell-connection-default-profile
-      (eshell-path-env-list))
-     (tramp-connection-local-darwin-ps-profile
+   '((tramp-connection-local-darwin-ps-profile
       (tramp-process-attributes-ps-args "-acxww" "-o" "pid,uid,user,gid,comm=abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ" "-o" "state=abcde" "-o" "ppid,pgid,sess,tty,tpgid,minflt,majflt,time,pri,nice,vsz,rss,etime,pcpu,pmem,args")
       (tramp-process-attributes-ps-format
        (pid . number)
@@ -284,11 +273,8 @@
      (tramp-connection-local-default-system-profile
       (path-separator . ":")
       (null-device . "/dev/null"))))
- '(custom-safe-themes
-   '("4c56af497ddf0e30f65a7232a8ee21b3d62a8c332c6b268c81e9ea99b11da0d3" default))
- '(helm-minibuffer-history-key "M-p")
  '(package-selected-packages
-   '(org-journal marginalia orderless consult vertico dired-subtree evil-commentary treemacs-tab-bar treemacs-magit treemacs-icons-dired treemacs-evil treemacs vterm evil-collection evil all-the-icons ivy-rich swiper-helm dumb-jump counsel magit use-package solarized-theme projectile perspective ace-window)))
+   '(god-mode boon meow exec-path-from-shell dired-subtree treemacs-magit treemacs-tab-bar evil-collection orderless org-journal projectile ibuffer-vc evil-leader evil-commentary solarized-theme dumb-jump marginalia swiper-helm perspective ivy-rich use-package all-the-icons counsel pyvenv vterm treemacs-evil consult treemacs-icons-dired vertico)))
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
